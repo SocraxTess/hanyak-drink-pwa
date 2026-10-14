@@ -1,0 +1,19 @@
+{
+  "name": "한약 드실게요",
+  "short_name": "한약 드실게요",
+  "description": "처방된 한약 복용 시간을 알려드리는 작은 도구",
+  "id": "./",
+  "start_url": "./?src=home",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6EFE4",
+  "theme_color": "#F6EFE4",
+  "lang": "ko",
+  "dir": "ltr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

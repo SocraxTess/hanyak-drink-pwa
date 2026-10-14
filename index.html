@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>한약 드실게요</title>
+  <meta name="description" content="처방된 한약 복용 시간을 알려드리는 작은 도구">
+  <meta name="theme-color" content="#F6EFE4">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ───────── 첫 화면 (MainActivity) : 영상 재생 없음 ───────── -->
+<section id="v-home" class="view" hidden>
+  <h1 class="app-title">한약 드실게요</h1>
+
+  <div class="grow"></div>
+
+  <p id="homeMain" class="home-main"></p>
+  <p id="homeSub" class="home-sub"></p>
+  <p id="homePeriod" class="home-period" hidden></p>
+
+  <button id="homeCheck" class="btn btn-big" hidden>마셨어요 ✓</button>
+  <button id="homeSetup" class="btn btn-big" hidden>설정하기</button>
+  <button id="homeGuide" class="btn btn-mid" hidden>홈 화면에 설치하기</button>
+
+  <div class="grow"></div>
+
+  <div id="homeWarn" class="warn" hidden>
+    <p id="homeWarnText"></p>
+    <button id="homeWarnBtn" class="btn btn-outline"></button>
+  </div>
+
+  <p id="homeTrial" class="trial" hidden>시험용 웹 버전 · 앱을 완전히 닫으면 알림이 오지 않을 수 있어요</p>
+
+  <button id="homeSettings" class="link" hidden>설정</button>
+</section>
+
+<!-- ───────── 홈 화면 설치 안내 ───────── -->
+<section id="v-guide" class="view scroll" hidden>
+  <h1 class="page-title">시작하기</h1>
+  <p class="lead">아래 순서대로 한 번만 해 주세요.</p>
+
+  <ol class="steps">
+    <li>
+      <h2>홈 화면에 설치</h2>
+      <button id="guideInstall" class="btn btn-mid" hidden>홈 화면에 설치하기</button>
+      <p id="guideInstalled" class="ok" hidden>설치된 앱으로 실행 중입니다 ✓</p>
+      <div id="guideManual">
+        <p><b>삼성 인터넷</b> : 아래쪽 <b>≡ 메뉴</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b></p>
+        <p><b>Chrome</b> : 오른쪽 위 <b>⋮</b> → <b>홈 화면에 추가</b> (또는 <b>앱 설치</b>)</p>
+        <p><b>iPhone</b> : Safari 아래 <b>공유</b> 버튼 → <b>홈 화면에 추가</b></p>
+      </div>
+    </li>
+    <li>
+      <h2>홈 화면의 ‘한약 드실게요’ 아이콘으로 열기</h2>
+      <p>설치 후에는 인터넷 창이 아니라 <b>홈 화면 아이콘</b>으로 열어 주세요.</p>
+    </li>
+    <li>
+      <h2>복용 일정 설정</h2>
+      <p>하루 복용 횟수, 시간, 기간을 입력합니다. 한의원에서 도와드려요.</p>
+    </li>
+    <li>
+      <h2>알림 허용</h2>
+      <p>“알림을 허용할까요?” 창이 뜨면 <b>허용</b>을 눌러 주세요.</p>
+    </li>
+    <li>
+      <h2>테스트 알림 확인</h2>
+      <p>설정 화면의 <b>테스트 알림 보내기</b>로 알림이 오는지 확인합니다.</p>
+    </li>
+  </ol>
+
+  <button id="guideNext" class="btn btn-mid">다음</button>
+  <p class="sig">© 2026 Socra × Tess</p>
+</section>
+
+<!-- ───────── 설정 (SetupActivity) ───────── -->
+<section id="v-setup" class="view scroll" hidden>
+  <h1 class="page-title">설정</h1>
+
+  <h2 class="section">한의원 정보</h2>
+  <label class="label" for="setName">한의원명</label>
+  <input id="setName" class="field" type="text" placeholder="예: 행복한의원" autocomplete="off">
+  <label class="label" for="setPhone">전화번호</label>
+  <input id="setPhone" class="field" type="tel" placeholder="예: 063-123-4567" autocomplete="off">
+  <button id="saveClinic" class="btn btn-mid">한의원 정보 저장</button>
+
+  <hr>
+
+  <h2 id="scheduleSection" class="section">복용 일정</h2>
+  <p id="setCurrent" class="current" hidden></p>
+  <button id="setReset" class="btn btn-outline" hidden>새 복용 시작</button>
+
+  <p class="label">하루 복용 횟수</p>
+  <div class="seg" role="radiogroup">
+    <button class="seg-btn" data-count="1" role="radio">1회</button>
+    <button class="seg-btn" data-count="2" role="radio">2회</button>
+    <button class="seg-btn" data-count="3" role="radio">3회</button>
+  </div>
+
+  <p class="label">복용 시간</p>
+  <label class="time-row" data-i="0"><span>1회차</span><input class="field time" type="time"></label>
+  <label class="time-row" data-i="1"><span>2회차</span><input class="field time" type="time"></label>
+  <label class="time-row" data-i="2"><span>3회차</span><input class="field time" type="time"></label>
+
+  <label class="label" for="setStart">복용 시작일</label>
+  <input id="setStart" class="field" type="date">
+
+  <label class="label" for="setDays">복용 기간 (일)</label>
+  <input id="setDays" class="field" type="number" inputmode="numeric" min="1" max="365" placeholder="예: 14">
+
+  <p id="setSummary" class="summary"></p>
+  <button id="saveSchedule" class="btn btn-mid">이 일정으로 알림 설정</button>
+
+  <hr>
+
+  <div id="checkSection">
+    <h2 class="section">알림 점검</h2>
+    <p class="help">알림이 제시간에 오도록 아래 항목을 확인해 주세요</p>
+
+    <p id="chkInstall" class="chk"></p>
+    <button id="chkInstallBtn" class="btn btn-outline" hidden>설치 방법 보기</button>
+
+    <p id="chkNotif" class="chk"></p>
+    <button id="chkNotifBtn" class="btn btn-outline" hidden>알림 허용</button>
+
+    <button id="testNotif" class="btn btn-outline">테스트 알림 보내기 (10초 뒤)</button>
+    <p class="help">테스트 알림을 누르고 바로 화면을 꺼 두면, 잠금 상태에서도 오는지 확인할 수 있어요.</p>
+
+    <button id="openDiag" class="link">알림 진단 기록</button>
+  </div>
+
+  <p class="sig">© 2026 Socra × Tess</p>
+</section>
+
+<!-- ───────── 복용 회차 (DoseActivity) ───────── -->
+<section id="v-dose" class="view dose" hidden>
+  <div id="doseVideoBox" class="video-box" hidden>
+    <video id="doseVideo" playsinline preload="auto" poster="media/poster.jpg"></video>
+    <button id="doseTapPlay" class="tap-play" hidden>▶ 눌러서 영상 보기</button>
+  </div>
+
+  <div id="doseConfirm" class="center" hidden>
+    <p id="doseWhen" class="dose-when"></p>
+    <button id="doseDrank" class="btn btn-huge">마셨어요 ✓</button>
+  </div>
+
+  <div id="doseDone" class="center" hidden>
+    <p class="done-msg">건강을 향해 한 모금 ^^</p>
+    <button id="doseClose" class="btn btn-outline">닫기</button>
+  </div>
+</section>
+
+<!-- ───────── 최종 완료 (FinalActivity) ───────── -->
+<section id="v-final" class="view scroll final" hidden>
+  <div class="grow"></div>
+  <p class="final-title">수고하셨어요!</p>
+  <p class="final-body">처방받으신 한약을 모두 드셨어요 ^^</p>
+  <p id="finalContact" class="final-contact"></p>
+  <a id="finalCall" class="btn btn-big call" href="#"></a>
+  <button id="finalNew" class="btn btn-outline">새 복용 시작</button>
+  <div class="grow"></div>
+  <button id="finalSettings" class="link" hidden>설정</button>
+  <p class="sig">© 2026 Socra × Tess</p>
+</section>
+
+<!-- ───────── 알림 진단 (실기기 측정용) ───────── -->
+<section id="v-diag" class="view scroll" hidden>
+  <h1 class="page-title">알림 진단</h1>
+  <table class="env" id="diagEnv"></table>
+  <p class="help">알림이 표시·터치될 때마다 아래에 기록됩니다. 지연 = 실제 표시 시각 − 예정 시각.</p>
+  <div class="log-wrap"><table class="log" id="diagLog"></table></div>
+  <button id="diagTest" class="btn btn-outline">테스트 알림 보내기 (10초 뒤)</button>
+  <button id="diagClear" class="btn btn-outline">기록 지우기</button>
+  <button id="diagBack" class="btn btn-mid">돌아가기</button>
+</section>
+
+<!-- 확인창 -->
+<div id="modal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <p id="modalText"></p>
+    <div class="modal-btns">
+      <button id="modalNo" class="btn btn-outline"></button>
+      <button id="modalYes" class="btn btn-mid"></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
