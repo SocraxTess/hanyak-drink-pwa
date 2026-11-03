@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>달력 알림 시험판 · 한약 드실게요</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#F6EFE4">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="../icons/icon-192.png" type="image/png">
+  <!-- 공개 앱의 디자인 파일을 읽기만 함 (수정하지 않음) -->
+  <link rel="stylesheet" href="../app.css">
+  <style>
+    .test-badge { margin: 12px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-text); font-size: 16px; }
+    .notice { margin: 14px 0 0; padding: 16px 18px; background: var(--card); border-radius: 20px; }
+    .notice h2 { margin: 0 0 8px; font-size: 20px; color: var(--accent); }
+    .notice ul { margin: 0; padding-left: 1.2em; }
+    .notice li { margin: 6px 0; font-size: 17px; }
+    .agree { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; font-size: 18px; }
+    .agree input { width: 28px; height: 28px; margin-top: 2px; accent-color: var(--accent); flex: 0 0 auto; }
+    .steps-small { margin: 8px 0 0; padding-left: 1.3em; font-size: 17px; }
+    .steps-small li { margin: 4px 0; }
+    #loadSaved { margin-top: 10px; }
+  </style>
+</head>
+<body>
+<section class="view scroll">
+  <h1 class="page-title">폰 달력에 복약 알림 넣기</h1>
+  <p class="test-badge">시험판입니다 · 공개 중인 〈한약 드실게요〉 앱과 분리된 시험 페이지예요. 결과 확인 전까지 환자 안내에 쓰지 마세요.</p>
+
+  <p class="lead">휴대폰 달력에 복약 시각을 넣어 두면, 앱을 닫아도 달력이 정해진 시각에 알려 줘요. <b>정확히 울리는지는 기기마다 시험 중입니다.</b></p>
+
+  <h2 class="section">복약 일정</h2>
+  <button id="loadSaved" class="btn btn-outline" hidden>앱에 저장된 일정 불러오기</button>
+
+  <label class="label" for="calStart">복용 시작일</label>
+  <input id="calStart" class="field" type="date">
+
+  <label class="label" for="calDays">복용 기간 (일)</label>
+  <input id="calDays" class="field" type="number" inputmode="numeric" min="1" max="365" placeholder="예: 14">
+
+  <p class="label">하루 복용 횟수</p>
+  <div class="seg" role="radiogroup">
+    <button class="seg-btn" data-count="1" role="radio">1회</button>
+    <button class="seg-btn" data-count="2" role="radio">2회</button>
+    <button class="seg-btn" data-count="3" role="radio">3회</button>
+  </div>
+
+  <p class="label">복용 시각 (정각에 알림)</p>
+  <label class="time-row" data-i="0"><span>1회차</span><input class="field time" type="time"></label>
+  <label class="time-row" data-i="1"><span>2회차</span><input class="field time" type="time"></label>
+  <label class="time-row" data-i="2"><span>3회차</span><input class="field time" type="time"></label>
+
+  <p id="calSummary" class="summary"></p>
+
+  <div class="notice">
+    <h2>넣기 전에 꼭 읽어 주세요</h2>
+    <ul>
+      <li>알림 제목은 <b>‘🍵 복약 알림’</b>이에요. 이름·진단·처방·전화번호는 넣지 않아요.</li>
+      <li>달력 알림은 <b>잠금 화면</b>에 보일 수 있고, 함께 쓰는 <b>공유 달력</b>에 넣으면 다른 사람도 볼 수 있어요.</li>
+      <li>일정은 휴대폰 달력(구글·삼성·iCloud 등)에 저장되고, 달력 서비스에 따라 <b>클라우드에 동기화</b>될 수 있어요. 저희 서버로 보내는 것은 없어요.</li>
+      <li>달력 알림에서는 <b>약사발 영상·음성이 나오지 않아요.</b> 알림 속 앱 주소를 누르면 앱이 열리지만, 브라우저 설정에 따라 영상이나 소리가 바로 재생되지 않을 수 있어요.</li>
+      <li>복용 일정이 바뀌거나 중간에 멈춰도 <b>달력 일정은 저절로 바뀌거나 지워지지 않아요.</b> 아래 방법으로 직접 지워 주세요.</li>
+      <li>앱 알림도 켜 두셨다면 같은 시각에 <b>알림이 두 번</b> 올 수 있어요. 앱 알림은 그대로 두었어요.</li>
+    </ul>
+  </div>
+
+  <label class="agree"><input id="calAgree" type="checkbox"> <span>위 내용을 확인했어요</span></label>
+
+  <button id="calMake" class="btn btn-big" disabled>폰 달력에 넣기</button>
+  <button id="calShare" class="btn btn-outline" hidden>다른 앱으로 열기 (공유)</button>
+  <p id="calAfter" class="help" hidden>내려받은 파일 <b>‘한약복약알림.ics’</b>를 눌러 달력 앱을 고른 뒤 <b>저장(추가)</b>을 눌러 주세요. 같은 파일을 두 번 넣으면 일정이 두 번 생길 수 있어요.</p>
+
+  <div class="notice">
+    <h2>달력에서 지우는 방법</h2>
+    <ol class="steps-small">
+      <li>달력 앱에서 ‘🍵 복약 알림’ 일정을 누르기</li>
+      <li><b>삭제</b> 누르기</li>
+      <li><b>‘이 일정 및 이후 일정’</b> 또는 <b>‘모든 일정’</b> 고르기</li>
+    </ol>
+    <p class="help">하루 2~3회라면 시각마다 일정이 따로 있어서, 시각마다 한 번씩 지워 주세요.</p>
+  </div>
+
+  <a class="link" href="../">〈한약 드실게요〉 앱으로 돌아가기</a>
+  <p class="sig">© 2026 SOCRA × TESS. All rights reserved.</p>
+</section>
+
+<div id="toast" class="toast" hidden></div>
+<script src="ics.js"></script>
+<script src="cal.js"></script>
+</body>
+</html>
