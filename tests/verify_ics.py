@@ -1,5 +1,5 @@
 """달력 파일 독립 검증 — ics.js 와 다른 구현(python-dateutil 의 RRULE 해석)으로 알림 시각을 다시 계산해 비교.
-실행: python3 calendar-test/tests/verify_ics.py <ics.test.js 가 만든 폴더>
+실행: python3 tests/verify_ics.py <ics.test.js 가 만든 폴더>
 """
 import json, sys, pathlib
 from datetime import datetime, timezone, timedelta

@@ -1,10 +1,10 @@
-// 달력 파일 생성 자동 테스트 — 실행: node calendar-test/tests/ics.test.js [출력폴더]
+// 달력 파일 생성 자동 테스트 — 실행: node tests/ics.test.js [출력폴더]
 // 출력폴더를 주면 각 경우의 .ics 와 기대 알림 시각(.json)을 저장 → verify_ics.py 가 독립적으로 다시 검증
 'use strict';
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const ics = require('../../ics.js');
+const ics = require('../ics.js');
 
 const OUT = process.argv[2];
 const NOW = new Date(Date.UTC(2026, 10, 3, 6, 0, 0));
