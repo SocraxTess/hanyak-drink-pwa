@@ -4,7 +4,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const ics = require('../ics.js');
+const ics = require('../../ics.js');
 
 const OUT = process.argv[2];
 const NOW = new Date(Date.UTC(2026, 10, 3, 6, 0, 0));

@@ -6,12 +6,13 @@
  */
 'use strict';
 
-const CACHE = 'hanyak-pwa-0.1.0';
+const CACHE = 'hanyak-pwa-0.2.0';
 const PRECACHE = [
   './',
   'index.html',
   'app.css',
   'app.js',
+  'ics.js',
   'manifest.webmanifest',
   'icons/icon-192.png',
   'icons/icon-512.png',

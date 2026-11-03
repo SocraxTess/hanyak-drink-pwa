@@ -1,11 +1,12 @@
 /*
  * 한약 드실게요 — PWA (APK v1.0.2 동작 이식)
  * 모든 데이터는 이 기기의 브라우저 저장소(localStorage)에만 저장합니다. 서버 전송 없음.
- * © 2026 Socra × Tess
+ * 알림: 폰 달력(.ics)이 정해진 시간에 울립니다. 앱 자체 알림 권한은 묻지 않습니다 (Socra 결정 2026-11-03).
+ * © 2026 SOCRA × TESS. All rights reserved.
  */
 'use strict';
 
-const APP_VERSION = 'pwa-0.1.0';
+const APP_VERSION = 'pwa-0.2.0';
 const KEY = 'hanyak.v1';
 const NOTIFY_GRACE_MS = 10 * 60 * 1000;   // 예정 시각 후 10분 안에만 알림 (그 이후는 화면에서 '지금 드실 한약' 표시)
 const PREPARE_TIMEOUT_MS = 10000;          // 영상이 준비되지 않으면 복용 확인으로 넘어감 (APK 동일)
@@ -52,6 +53,9 @@ const Store = {
   clearSchedule() {
     Store.update((d) => { d.gen = (d.gen || 0) + 1; d.schedule = null; d.done = []; d.notified = null; });
   },
+  /** 이 일정으로 '폰 달력에 넣기'를 눌렀음 (달력에 실제 저장됐는지는 앱이 알 수 없음) */
+  markCalendar(gen) { Store.update((d) => { if (d.schedule && d.schedule.gen === gen) d.schedule.calendarAt = Date.now(); }); },
+  calendarAt() { const s = Store.load().schedule; return s && s.calendarAt ? s.calendarAt : 0; },
   completed() { return new Set(Store.load().done); },
   isCompleted(i) { return Store.completed().has(i); },
   /** 회차 완료. 이미 완료면 false (중복 완료 처리 없음) */
@@ -176,7 +180,9 @@ const Notify = {
       const due = s.doseMillis(i);
       if (Store.markNotified(s.gen, i)) {
         const fresh = now - due <= NOTIFY_GRACE_MS;
-        if (fresh && !Store.isCompleted(i)) {
+        if (fresh && !Store.isCompleted(i) && Store.calendarAt()) {
+          Store.log({ type: '달력 알림 사용(앱 알림 생략)', label: Fmt.dose(new Date(due)), due });
+        } else if (fresh && !Store.isCompleted(i)) {
           const shown = await Notify.show(s, i);
           Store.log({ type: shown ? '알림 표시' : '알림 실패(권한)', label: Fmt.dose(new Date(due)), due });
         } else if (!fresh) {
@@ -231,7 +237,7 @@ async function askPermission() {
 
 /* ───────────── 화면 전환 ───────────── */
 let currentView = null;
-const VIEWS = ['home', 'guide', 'setup', 'dose', 'final', 'diag'];
+const VIEWS = ['home', 'guide', 'setup', 'cal', 'dose', 'final', 'diag'];
 
 function show(view) {
   VIEWS.forEach((v) => { $('v-' + v).hidden = v !== view; });
@@ -243,7 +249,7 @@ function show(view) {
 function go(view, opts) {
   opts = opts || {};
   if (view !== 'home' && !opts.replace) history.pushState({ v: view }, '');
-  ({ home: renderHome, guide: renderGuide, setup: () => renderSetup(opts), final: () => renderFinal(opts), diag: renderDiag })[view]();
+  ({ home: renderHome, guide: renderGuide, setup: () => renderSetup(opts), cal: renderCal, final: () => renderFinal(opts), diag: renderDiag })[view]();
 }
 window.addEventListener('popstate', () => { renderHome(); });
 
@@ -258,9 +264,9 @@ function renderHome() {
 
   if (!Store.hasClinic() || !s) {
     $('homeMain').textContent = '처음 설정이 필요해요';
-    $('homeSub').textContent = standalone ? '한의원에서 복용 일정을 설정해 드립니다' : '먼저 홈 화면에 설치해 주세요';
-    if (standalone) $('homeSetup').hidden = false;
-    else { $('homeGuide').hidden = false; $('homeSettings').hidden = false; }
+    $('homeSub').textContent = '한의원에서 복용 일정을 설정해 드립니다';
+    $('homeSetup').hidden = false;
+    if (!standalone) $('homeGuide').hidden = false;   // 홈 화면 설치는 선택
     return;
   }
 
@@ -285,21 +291,13 @@ function renderHome() {
   $('homePeriod').hidden = false;
   $('homePeriod').textContent = `복용 기간 ${Fmt.shortDate(s.startDate)} ~ ${Fmt.shortDate(s.endDate)}`;
   $('homeSettings').hidden = false;
-  $('homeTrial').hidden = false;
 
-  const perm = Env.notifPermission();
-  if (perm !== 'granted') {
+  if (!Store.calendarAt()) {
     $('homeWarn').hidden = false;
-    $('homeWarnText').textContent = perm === 'unsupported' ? '이 브라우저에서는 알림을 받을 수 없어요' : '알림이 꺼져 있어 복용 시간을 알려드릴 수 없어요';
-    $('homeWarnBtn').textContent = '알림 켜기';
-    $('homeWarnBtn').hidden = perm === 'unsupported';
-    $('homeWarnBtn').onclick = async () => { await askPermission(); renderHome(); };
-  } else if (!standalone) {
-    $('homeWarn').hidden = false;
-    $('homeWarnText').textContent = '홈 화면에 설치해야 알림을 더 안정적으로 받을 수 있어요';
+    $('homeWarnText').textContent = '정해진 시간에 알림을 받으려면 폰 달력에 알림을 넣어 주세요';
     $('homeWarnBtn').hidden = false;
-    $('homeWarnBtn').textContent = '설치 방법 보기';
-    $('homeWarnBtn').onclick = () => go('guide');
+    $('homeWarnBtn').textContent = '폰 달력에 넣기';
+    $('homeWarnBtn').onclick = () => go('cal');
   }
 }
 $('homeCheck').onclick = () => { if (homeDue >= 0) Dose.open(homeGen, homeDue, false); };
@@ -381,11 +379,11 @@ function updateScheduleViews() {
 }
 function updateChecks() {
   const st = Env.standalone();
-  $('chkInstall').textContent = st ? '홈 화면 설치 ✓' : '홈 화면 설치 — 권장';
+  $('chkInstall').textContent = st ? '홈 화면 설치 ✓' : '홈 화면 설치 — 선택 (안 해도 달력 알림은 와요)';
   $('chkInstallBtn').hidden = st;
-  const p = Env.notifPermission();
-  $('chkNotif').textContent = p === 'granted' ? '알림 허용 ✓' : p === 'unsupported' ? '알림 — 이 브라우저는 지원하지 않음' : p === 'denied' ? '알림 허용 — 차단됨' : '알림 허용 — 꺼져 있음';
-  $('chkNotifBtn').hidden = p === 'granted' || p === 'unsupported';
+  const has = !!Store.schedule();
+  $('chkCal').textContent = !has ? '폰 달력 알림 — 일정을 먼저 저장해 주세요' : Store.calendarAt() ? '폰 달력에 넣기 ✓ (다시 넣으면 일정이 두 번 생길 수 있어요)' : '폰 달력 알림 — 아직 넣지 않음';
+  $('chkCalBtn').hidden = !has;
 }
 
 document.querySelectorAll('.seg-btn').forEach((b) => b.addEventListener('click', () => {
@@ -401,8 +399,7 @@ $('setStart').addEventListener('change', () => {
 });
 $('setDays').addEventListener('input', updateScheduleViews);
 $('chkInstallBtn').onclick = () => go('guide');
-$('chkNotifBtn').onclick = async () => { await askPermission(); updateChecks(); };
-$('testNotif').onclick = () => Notify.test();
+$('chkCalBtn').onclick = () => go('cal');
 $('openDiag').onclick = () => go('diag');
 
 $('saveClinic').onclick = () => {
@@ -427,9 +424,6 @@ $('saveSchedule').onclick = async () => {
     const ok = await confirmBox('새 일정으로 바꾸면 기존 일정과 복용 기록이 지워집니다.\n(한의원 정보는 유지됩니다)', '새 일정 저장', '취소');
     if (!ok) return;
   }
-  // 권한 요청은 사용자 터치 직후에 해야 하므로 저장 전에 요청
-  if (Env.notifPermission() === 'default') await askPermission();
-
   await Notify.closeAll();
   const sch = Store.saveSchedule(list, form.start, days);
   // 이미 지난 오늘 회차는 알림 대상에서 제외 (저장 직후 지난 회차 알림이 한꺼번에 뜨지 않도록)
@@ -438,15 +432,10 @@ $('saveSchedule').onclick = async () => {
   requestPersist();
   Notify.arm();
 
-  if (Env.notifPermission() === 'granted') {
-    toast('복용 알림을 설정했어요');
-    history.replaceState(null, '', './');
-    renderHome();
-  } else {
-    toast('일정을 저장했어요. 아래 알림 점검을 확인해 주세요');
-    updateChecks();
-    $('checkSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  toast('일정을 저장했어요. 이어서 폰 달력에 넣어 주세요');
+  history.replaceState(null, '', './');
+  history.pushState({ v: 'cal' }, '');
+  renderCal();
 };
 
 /** 새 복용 시작 (설정: 확인창 후 / 최종 화면: 바로) — APK SetupActivity.startNewCourse */
@@ -454,7 +443,7 @@ async function startNewCourse() {
   await Notify.closeAll();      // 떠 있는 복용 알림 제거
   clearTimeout(Notify.timer);    // 예약 타이머 취소
   Store.clearSchedule();         // 일정·완료 기록 초기화 (한의원 정보 유지)
-  toast('새 복용 일정을 설정해 주세요');
+  toast('새 복용 일정을 설정해 주세요 · 이전 달력 일정은 달력 앱에서 지워 주세요');
   history.replaceState(null, '', './');
   history.pushState({ v: 'setup' }, '');
   renderSetup({ focusSchedule: true });
@@ -463,6 +452,70 @@ $('setReset').onclick = async () => {
   const ok = await confirmBox('현재 복용 기록을 종료하고 새 복용을 시작할까요?', '새로 시작', '취소');
   if (ok) startNewCourse();
 };
+
+/* ───────────── 폰 달력에 알림 넣기 ───────────── */
+const CAL_FILE = '한약복약알림.ics';
+function calOpts() {
+  const s = Store.schedule();
+  if (!s) return null;
+  const d = s.startDate;
+  return {
+    startDate: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+    days: s.days, times: s.times,
+    appUrl: new URL('./', location.href).href,     // 한의원 정보 등 매개변수 없는 앱 주소
+  };
+}
+function renderCal() {
+  const o = calOpts();
+  if (!o) { renderSetup({ focusSchedule: true }); return; }
+  show('cal');
+  const s = Store.schedule();
+  $('calSummary').textContent = `하루 ${s.perDay}회 × ${s.days}일 = 총 ${s.total}회\n${Fmt.shortDate(s.startDate)} ~ ${Fmt.shortDate(s.endDate)}\n알림: ${s.times.map(Fmt.time).join(' · ')} 정각`;
+  $('calAgree').checked = false;
+  $('calMake').disabled = true;
+  $('calShare').disabled = true;
+  $('calAfter').hidden = !Store.calendarAt();
+  try {
+    const probe = new File(['x'], CAL_FILE, { type: 'text/calendar' });
+    $('calShare').hidden = !(navigator.canShare && navigator.canShare({ files: [probe] }));
+  } catch (e) { $('calShare').hidden = true; }
+}
+function calFile() {
+  const text = HanyakIcs.buildIcs(calOpts(), new Date());
+  return { text, blob: new Blob([text], { type: 'text/calendar;charset=utf-8' }) };
+}
+function calIsIOS() {
+  return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+$('calAgree').addEventListener('change', () => { $('calMake').disabled = !$('calAgree').checked; $('calShare').disabled = $('calMake').disabled; });
+$('calMake').onclick = () => {
+  let f;
+  try { f = calFile(); } catch (e) { toast(e.message); return; }
+  const s = Store.schedule();
+  Store.markCalendar(s.gen);
+  if (calIsIOS()) {
+    location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(f.text);   // iPhone: 미검증
+  } else {
+    const url = URL.createObjectURL(f.blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = CAL_FILE; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  $('calAfter').hidden = false;
+};
+$('calShare').onclick = async () => {
+  let f;
+  try { f = calFile(); } catch (e) { toast(e.message); return; }
+  try {
+    await navigator.share({ files: [new File([f.blob], CAL_FILE, { type: 'text/calendar' })], title: '🍵 복약 알림' });
+    Store.markCalendar(Store.schedule().gen);
+    $('calAfter').hidden = false;
+  } catch (e) {
+    if (e && e.name !== 'AbortError') toast('공유로 열 수 없어요. ‘폰 달력에 넣기’를 이용해 주세요');
+  }
+};
+$('calDone').onclick = () => { history.replaceState(null, '', './'); renderHome(); };
 
 /* ───────────── 복용 회차 (DoseActivity) ───────────── */
 const Dose = {
