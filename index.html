@@ -29,7 +29,7 @@
 
   <button id="homeCheck" class="btn btn-big" hidden>마셨어요 ✓</button>
   <button id="homeSetup" class="btn btn-big" hidden>설정하기</button>
-  <button id="homeGuide" class="btn btn-mid" hidden>홈 화면에 설치하기</button>
+  <button id="homeGuide" class="btn btn-outline" hidden>홈 화면에 설치하기 (선택)</button>
 
   <div class="grow"></div>
 
@@ -50,7 +50,16 @@
 
   <ol class="steps">
     <li>
-      <h2>홈 화면에 설치</h2>
+      <h2>복용 일정 설정</h2>
+      <p>하루 복용 횟수, 시간, 기간을 입력합니다. 접수실에서 도와드려요.</p>
+    </li>
+    <li>
+      <h2>폰 달력에 알림 넣기</h2>
+      <p>일정을 저장하면 <b>폰 달력에 넣기</b> 화면이 이어집니다. 파일을 눌러 달력 앱에서 <b>저장</b>하면, 앱을 닫아도 달력이 정해진 시간에 알려 줘요.</p>
+    </li>
+    <li>
+      <h2>(선택) 홈 화면에 설치</h2>
+      <p>설치하지 않아도 달력 알림은 와요. 아이콘으로 열고 싶을 때만 설치하세요.</p>
       <button id="guideInstall" class="btn btn-mid" hidden>홈 화면에 설치하기</button>
       <p id="guideInstalled" class="ok" hidden>설치된 앱으로 실행 중입니다 ✓</p>
       <div id="guideManual">
@@ -59,26 +68,10 @@
         <p><b>iPhone</b> : Safari 아래 <b>공유</b> 버튼 → <b>홈 화면에 추가</b></p>
       </div>
     </li>
-    <li>
-      <h2>홈 화면의 ‘한약 드실게요’ 아이콘으로 열기</h2>
-      <p>설치 후에는 인터넷 창이 아니라 <b>홈 화면 아이콘</b>으로 열어 주세요.</p>
-    </li>
-    <li>
-      <h2>복용 일정 설정</h2>
-      <p>하루 복용 횟수, 시간, 기간을 입력합니다. 한의원에서 도와드려요.</p>
-    </li>
-    <li>
-      <h2>알림 허용</h2>
-      <p>“알림을 허용할까요?” 창이 뜨면 <b>허용</b>을 눌러 주세요.</p>
-    </li>
-    <li>
-      <h2>테스트 알림 확인</h2>
-      <p>설정 화면의 <b>테스트 알림 보내기</b>로 알림이 오는지 확인합니다.</p>
-    </li>
   </ol>
 
   <button id="guideNext" class="btn btn-mid">다음</button>
-  <p class="sig">© 2026 Socra × Tess</p>
+  <p class="sig">© 2026 SOCRA × TESS. All rights reserved.</p>
 </section>
 
 <!-- ───────── 설정 (SetupActivity) ───────── -->
@@ -117,27 +110,60 @@
   <input id="setDays" class="field" type="number" inputmode="numeric" min="1" max="365" placeholder="예: 14">
 
   <p id="setSummary" class="summary"></p>
-  <button id="saveSchedule" class="btn btn-mid">이 일정으로 알림 설정</button>
+  <button id="saveSchedule" class="btn btn-mid">이 일정 저장하고 달력에 넣기</button>
 
   <hr>
 
   <div id="checkSection">
-    <h2 class="section">알림 점검</h2>
-    <p class="help">알림이 제시간에 오도록 아래 항목을 확인해 주세요</p>
+    <h2 class="section">알림</h2>
+    <p id="chkCal" class="chk"></p>
+    <button id="chkCalBtn" class="btn btn-outline">폰 달력에 넣기</button>
 
     <p id="chkInstall" class="chk"></p>
-    <button id="chkInstallBtn" class="btn btn-outline" hidden>설치 방법 보기</button>
-
-    <p id="chkNotif" class="chk"></p>
-    <button id="chkNotifBtn" class="btn btn-outline" hidden>알림 허용</button>
-
-    <button id="testNotif" class="btn btn-outline">테스트 알림 보내기 (10초 뒤)</button>
-    <p class="help">테스트 알림을 누르고 바로 화면을 꺼 두면, 잠금 상태에서도 오는지 확인할 수 있어요.</p>
+    <button id="chkInstallBtn" class="btn btn-outline" hidden>설치 방법 보기 (선택)</button>
 
     <button id="openDiag" class="link">알림 진단 기록</button>
   </div>
 
-  <p class="sig">© 2026 Socra × Tess</p>
+  <p class="sig">© 2026 SOCRA × TESS. All rights reserved.</p>
+</section>
+
+<!-- ───────── 폰 달력에 알림 넣기 (일정 저장 다음 단계) ───────── -->
+<section id="v-cal" class="view scroll" hidden>
+  <h1 class="page-title">폰 달력에 알림 넣기</h1>
+  <p class="lead">폰 달력에 넣어 두면 <b>앱을 닫아도</b> 정해진 시간에 달력이 알려 줘요.</p>
+
+  <p id="calSummary" class="summary"></p>
+
+  <div class="notice">
+    <h2>넣기 전에 확인해 주세요</h2>
+    <ul>
+      <li>알림 제목은 <b>‘🍵 복약 알림’</b>이에요. 이름·진단·처방·전화번호는 넣지 않아요.</li>
+      <li>달력 알림은 <b>잠금 화면</b>에 보일 수 있고, <b>공유 달력</b>에 넣으면 다른 사람도 볼 수 있어요.</li>
+      <li>일정은 폰 달력(삼성·구글·iCloud 등)에 저장되고, 달력 설정에 따라 <b>클라우드에 동기화</b>될 수 있어요. 저희 서버로 보내는 것은 없어요.</li>
+      <li>달력 알림에서는 약사발 영상이 나오지 않아요. 알림 속 주소를 누르면 이 앱이 열리고 <b>마셨어요</b>를 누를 수 있어요.</li>
+      <li>복용 일정이 바뀌거나 중간에 멈춰도 <b>달력 일정은 저절로 지워지지 않아요.</b> 아래 방법으로 지워 주세요.</li>
+    </ul>
+  </div>
+
+  <label class="agree"><input id="calAgree" type="checkbox"> <span>위 내용을 확인했어요</span></label>
+
+  <button id="calMake" class="btn btn-big" disabled>폰 달력에 넣기</button>
+  <button id="calShare" class="btn btn-outline" hidden>다른 앱으로 열기 (공유)</button>
+  <p id="calAfter" class="help" hidden>내려받은 파일 <b>‘한약복약알림.ics’</b>를 눌러 달력 앱을 고른 뒤 <b>저장</b>을 눌러 주세요. 같은 파일을 두 번 넣으면 일정이 두 번 생길 수 있어요.</p>
+
+  <div class="notice">
+    <h2>달력에서 지우는 방법</h2>
+    <ol class="steps-small">
+      <li>달력 앱에서 ‘🍵 복약 알림’ 일정을 누르기</li>
+      <li><b>삭제</b> 누르기</li>
+      <li><b>‘이 일정 및 이후 일정’</b> 또는 <b>‘모든 일정’</b> 고르기</li>
+    </ol>
+    <p class="help">하루 2~3회라면 시각마다 일정이 따로 있어서, 시각마다 한 번씩 지워 주세요.</p>
+  </div>
+
+  <button id="calDone" class="btn btn-mid">완료</button>
+  <p class="sig">© 2026 SOCRA × TESS. All rights reserved.</p>
 </section>
 
 <!-- ───────── 복용 회차 (DoseActivity) ───────── -->
@@ -168,7 +194,7 @@
   <button id="finalNew" class="btn btn-outline">새 복용 시작</button>
   <div class="grow"></div>
   <button id="finalSettings" class="link" hidden>설정</button>
-  <p class="sig">© 2026 Socra × Tess</p>
+  <p class="sig">© 2026 SOCRA × TESS. All rights reserved.</p>
 </section>
 
 <!-- ───────── 알림 진단 (실기기 측정용) ───────── -->
@@ -195,6 +221,7 @@
 
 <div id="toast" class="toast" hidden></div>
 
+<script src="ics.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -192,3 +192,13 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0 0; width: 100%
   border-radius: 16px; padding: 14px 18px; font-size: 18px; text-align: center;
 }
 .toast[hidden] { display: none; }
+
+/* 폰 달력에 알림 넣기 */
+.notice { margin: 14px 0 0; padding: 16px 18px; background: var(--card); border-radius: 20px; }
+.notice h2 { margin: 0 0 8px; font-size: 20px; color: var(--accent); }
+.notice ul { margin: 0; padding-left: 1.2em; }
+.notice li { margin: 6px 0; font-size: 17px; }
+.agree { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; font-size: 18px; }
+.agree input { width: 28px; height: 28px; margin-top: 2px; accent-color: var(--accent); flex: 0 0 auto; }
+.steps-small { margin: 8px 0 0; padding-left: 1.3em; font-size: 17px; }
+.steps-small li { margin: 4px 0; }
